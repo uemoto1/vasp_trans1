@@ -47,7 +47,7 @@ typedef union {
         double _Complex z;
     };
     double _Complex v[3];
-} vec3dc;
+} vec3c;
 
 typedef union {
     struct {
@@ -94,17 +94,13 @@ int ireduce(int i, int cycle) {
     return (i + half) % cycle - half;
 }
 
+// Vector algerbra...
 void scalar3d(double a, vec3d *p, vec3d *q) {
     for (int i = 0; i < 3; i++) {
         q->v[i] = a * p->v[i];
     }
 }
 
-void add3d(vec3d *p, vec3d *q, vec3d *r) {
-    for (int i = 0; i < 3; i++) {
-        r->v[i] = p->v[i] + q->v[i];
-    }
-}
 
 double inner3d(vec3d *p, vec3d *q) {
     double r = 0;
@@ -121,7 +117,7 @@ void outer3d(vec3d *a, vec3d *b, vec3d *c) {
     }
 }
 
-double inner3dc(vec3d *p, vec3dc *q) {
+double inner3dc(vec3d *p, vec3c *q) {
     double _Complex r = 0;
     for (int i = 0; i < 3; i++) {
         r += p->v[i] * q->v[i];
@@ -129,14 +125,20 @@ double inner3dc(vec3d *p, vec3dc *q) {
     return r;
 }
 
-void outer3dc(vec3dc *a, vec3dc *b, vec3dc *c) {
+double inner3cc(vec3c *p, vec3c *q) {
+    double _Complex r = 0;
+    for (int i = 0; i < 3; i++) {
+        r += p->v[i] * q->v[i];
+    }
+    return r;
+}
+
+void outer3dc(vec3d *a, vec3c *b, vec3c *c) {
     for (int i = 0; i < 3; i++) {
         int j = etbl[i][0], k = etbl[i][1];
         c->v[i] = (a->v[j] * b->v[k]) - (a->v[k] * b->v[j]);
     }
 }
-
-
 
 void convert3d(vec3d *p, lattice *a, vec3d *q) {
     for (int i = 0; i < 3; i++) {
@@ -188,7 +190,7 @@ int create_gtable(lattice *b, double e_cut, int n_plain, vec3d *gtbl) {
                         gtbl[n_count] = gk;
                         n_count++;
                     } else {
-                        printf("# Broken NGRID is too small\n");
+                        printf("# NGRID is too small\n");
                         return -1;
                     }
                 }
@@ -206,10 +208,12 @@ double read_wave(FILE *fh, int n_record, int n_coeff, int i,
 }
 
 // Transition probablity by linear polarized light
-double _Complex matrix(int n_plain, vec3d *gtbl, float _Complex *wf1, float _Complex *wf2, vec3d* qv, vec3dc* ev) {
+double _Complex matrix(int n_plain, vec3d *gtbl, float _Complex *wf1, float _Complex *wf2, vec3d* qv, vec3c* ev) {
+vec3c qe;
+outer3dc(qv, ev, &qe);
 
-    double _Complex result = 0.0;
     // Summension over all diagonal element:
+    double _Complex result = 0.0;
     for (int i = 0; i < n_plain; i++) {
         vec3d g = gtbl[i];
         // u(up-spin), d(down-spin) components of wavefunction
@@ -220,18 +224,15 @@ double _Complex matrix(int n_plain, vec3d *gtbl, float _Complex *wf1, float _Com
 
         // Pauli matrix
         double _Complex s0;
-        vec3dc sigma;
+        vec3c sigma;
         s0 = + 1 * conj(wf1u) * wf2u + 1 * conj(wf1d) * wf2d;
         sigma.x = + 1 * conj(wf1u) * wf2d + 1 * conj(wf1d) * wf2u;
         sigma.y = - I * conj(wf1u) * wf2d + I * conj(wf1d) * wf2u;
         sigma.z = + 1 * conj(wf1u) * wf2u - 1 * conj(wf1d) * wf2d;
-        vec3dc es;
-        outer3dc(ev, &sigma, &es);
-
         // First term (spin-independent term)
         double _Complex h1 = 2.0 * inner3dc(&g, ev) * s0;
         // Second term (spin-dependent term)
-        double _Complex h2 = I * inner3dc(qv, &es);
+        double _Complex h2 = I * inner3cc(&qe, &sigma);
         // Transition Probability....
         result += h1 + h2;
     }
@@ -285,7 +286,7 @@ int main(int argc, char **argv) {
     // Write out all band energies
     printf("# eigen energies on k=0\n");
     for (int i = 0; i < n_band; i++) {
-        printf("eigenstate i=%d e=%f n=%f\n", i, state[i].energy, state[i].occup);
+        printf("EIGEN i=%d e=%f n=%f\n", i, state[i].energy, state[i].occup);
     }
 
     // Write out all considerable transittion
@@ -293,7 +294,17 @@ int main(int argc, char **argv) {
     // Wavefunction: wfi, wfj
     float _Complex *wfi = malloc(sizeof(float _Complex) * n_coeff);
     float _Complex *wfj = malloc(sizeof(float _Complex) * n_coeff);
-
+    // Polarization vector
+    vec3c ex, ey, er, el;
+    ex.x = 1.0; ex.y = 0.0; ex.z = 0.0;
+    ey.x = 0.0; ey.y = 1.0; ey.z = 0.0;
+    er.x = 1.0 / sqrt(2.0); er.y = I / sqrt(2.0); er.z = 0.0;
+    el.x = 1.0 / sqrt(2.0); el.y = -I / sqrt(2.0); el.z = 0.0;
+    printf("# i=initial state index\n");
+    printf("# j=excited state index\n");
+    printf("# e=energy difference between two states\n");
+    printf("# n=population difference between two states\n");
+    printf("# wx, wy, wr, wl = transition probability (x,y,l,r-polarization)\n");
     for (int i = 0; i < n_band - 1; i++) {
         if (state[i].energy < info.e_fermi) {
             // Read wavefunction: i
@@ -309,20 +320,28 @@ int main(int argc, char **argv) {
                         double cj = read_wave(fh, n_record, n_coeff, j, wfj);
 
                         // Calculate
-                        vec3dc evec;
                         vec3d qvec;
-                        evec.x = 1.0;
-                        evec.y = 0.0;
-                        evec.z = 0.0;
                         qvec.x = 0.0;
                         qvec.y = 0.0;
-                        qvec.z = 1.0;
-
-                        double _Complex h = matrix(n_plain, gtbl, wfi, wfj, &qvec, &evec);
-                        h = h * ci * cj;  // Normalize
+                        qvec.z = 2*PI*1.24E+4/ediff;
+                        // Calculate matrix element...
+                        double _Complex hx = matrix(n_plain, gtbl, wfi, wfj, &qvec, &ex);
+                        double _Complex hy = matrix(n_plain, gtbl, wfi, wfj, &qvec, &ey);
+                        double _Complex hr = matrix(n_plain, gtbl, wfi, wfj, &qvec, &el);
+                        double _Complex hl = matrix(n_plain, gtbl, wfi, wfj, &qvec, &er);
+                        // Normalize
+                        hx = hx * ci * cj;
+                        hy = hy * ci * cj;
+                        hl = hl * ci * cj;
+                        hr = hr * ci * cj;
+                        // Transition
+                        double wx = pow(cabs(hx), 2);
+                        double wy = pow(cabs(hy), 2);
+                        double wl = pow(cabs(hl), 2);
+                        double wr = pow(cabs(hr), 2);
 
                         // Output Transition
-                        printf("i=%d j=%d e=%f n=%f %e \n", i, j, ediff, ndiff, cabs(h)*cabs(h));
+                        printf("TRANS i=%d j=%d e=%f n=%f wx=%e wy=%e el=%e er=%e\n", i, j, ediff, ndiff, wx, wy, wl, wr);
                     }
                 }
             }
