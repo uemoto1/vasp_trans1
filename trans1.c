@@ -1,5 +1,5 @@
 /*
- * wav2.c
+ * trans1.c
  *
  * Copyright 2015 M. Uemoto <Uemoto@Osaka University>
  *
