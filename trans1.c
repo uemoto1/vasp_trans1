@@ -323,7 +323,7 @@ int main(int argc, char **argv) {
                         vec3d qvec;
                         qvec.x = 0.0;
                         qvec.y = 0.0;
-                        qvec.z = 2*PI*1.24E+4/ediff;
+                        qvec.z = (2 * PI / 1.24E+4) * ediff;
                         // Calculate matrix element...
                         double _Complex hx = matrix(n_plain, gtbl, wfi, wfj, &qvec, &ex);
                         double _Complex hy = matrix(n_plain, gtbl, wfi, wfj, &qvec, &ey);
