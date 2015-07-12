@@ -341,7 +341,7 @@ int main(int argc, char **argv) {
                         double wr = pow(cabs(hr), 2);
 
                         // Output Transition
-                        printf("TRANS i=%d j=%d e=%f n=%f wx=%e wy=%e el=%e er=%e\n", i, j, ediff, ndiff, wx, wy, wl, wr);
+                        printf("TRANS i=%d j=%d e=%f n=%f wx=%e wy=%e wl=%e wr=%e\n", i, j, ediff, ndiff, wx, wy, wl, wr);
                     }
                 }
             }
