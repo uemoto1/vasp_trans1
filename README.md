@@ -7,16 +7,20 @@ __電気双極子近似に基づく状態間遷移確率計算プログラム__
 
 ## ビルド方法
 * 標準的なCコンパイラでは以下のコマンドライン引数でコンパイル可能
-
+ * gcc(Gnu C Compiler) 4.8以降
+    
     gcc trans1.c -o trans1 -std=c99 -lm -O3
+
+ * icc(Intel C Compiler)
+    
+    icc trans1.c -o trans1 -std=c99 -lm -O3
 
 ## 使用方法
 * WAVECARファイルを含むディレクトリ上でプログラムを実行する
 
-        cd ~/directory_contains_vasp_output/
-        ~/directory_of_trans1/trans1
+        trans1 ~/a_directory_containing_wavecar_file/WAVECAR
 
-* 出力ファイルは以下のようになる
+* 結果は標準出力に書きだされる
 
         # eigen energies on k=0
         EIGEN i=0 e=-36.577988 n=1.000000
@@ -36,3 +40,6 @@ __電気双極子近似に基づく状態間遷移確率計算プログラム__
 * TRANS 遷移確率
     * i=始状態 j=終状態 e=エネルギー差 n=占有率差
     * wx, wy, wl, wr : 直線偏光(X, Y)および円偏光(L, R)による遷移確率
+
+## 更新履歴
+* コマンドライン引数による入力ファイルの指定、Usageの表示を追加
