@@ -240,7 +240,13 @@ outer3dc(qv, ev, &qe);
 }
 
 int main(int argc, char **argv) {
-    FILE *fh = fopen("WAVECAR", "r");
+    // Commandline variables...
+    if (argc == 1) {
+        printf("TRANCE1.C: Calculate transition probability from WAVECAR file\n\n");
+        printf("Usage: %s [WAVECAR FILE]\n", argv[0]);
+        exit(-1);
+    }
+    FILE *fh = fopen(argv[1], "r");
 
     // Read Wavecar "HEADER" section
     fseek(fh, 0, SEEK_SET);
