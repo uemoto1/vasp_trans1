@@ -247,6 +247,11 @@ int main(int argc, char **argv) {
         exit(-1);
     }
     FILE *fh = fopen(argv[1], "r");
+    // Scissors factor
+    double scissors = 0.0;
+    if (argc == 3) {
+        scissors = atof(argv[2]);
+    }
 
     // Read Wavecar "HEADER" section
     fseek(fh, 0, SEEK_SET);
@@ -309,6 +314,7 @@ int main(int argc, char **argv) {
     printf("# i=initial state index\n");
     printf("# j=excited state index\n");
     printf("# e=energy difference between two states\n");
+    printf("# s=scissors approximated energy difference");
     printf("# n=population difference between two states\n");
     printf("# wx, wy, wr, wl = transition probability (x,y,l,r-polarization)\n");
     for (int i = 0; i < n_band - 1; i++) {
@@ -319,6 +325,7 @@ int main(int argc, char **argv) {
             for (int j = i + 1; j < n_band; j++) {
                 if (info.e_fermi < state[j].energy) {
                     double ediff = state[j].energy - state[i].energy;
+                    double sdiff = ediff + scissors;
                     double ndiff = state[i].occup - state[j].occup;
                     // Upper limit of e-MAX energy
                     if (ediff < EMAX) {
@@ -347,7 +354,7 @@ int main(int argc, char **argv) {
                         double wr = pow(cabs(hr), 2);
 
                         // Output Transition
-                        printf("TRANS i=%d j=%d e=%f n=%f wx=%e wy=%e wl=%e wr=%e\n", i, j, ediff, ndiff, wx, wy, wl, wr);
+                        printf("TRANS i=%d j=%d e=%f s=%f n=%f wx=%e wy=%e wl=%e wr=%e\n", i, j, ediff, sdiff, ndiff, wx, wy, wl, wr);
                     }
                 }
             }
