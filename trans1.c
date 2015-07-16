@@ -244,6 +244,7 @@ int main(int argc, char **argv) {
     if (argc == 1) {
         printf("TRANCE1.C: Calculate transition probability from WAVECAR file\n\n");
         printf("Usage: %s [WAVECAR FILE]\n", argv[0]);
+        printf("Usage: %s [WAVECAR FILE] [SCISSORS FACTOR]\n", argv[0]);
         exit(-1);
     }
     FILE *fh = fopen(argv[1], "r");
