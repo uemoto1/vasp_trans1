@@ -20,6 +20,11 @@ __電気双極子近似に基づく状態間遷移確率計算プログラム__
 
         trans1 ~/a_directory_containing_wavecar_file/WAVECAR
 
+* またScissors Approximationによるスペクトルの補正を行う場合
+
+        trans1 ~/a_directory_containing_wavecar_file/WAVECAR 1.00
+
+
 * 結果は標準出力に書きだされる
 
         # eigen energies on k=0
