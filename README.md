@@ -23,7 +23,14 @@ __電気双極子近似に基づく状態間遷移確率計算プログラム__
 
 * またScissors Approximationによるスペクトルの補正を行う場合
 
-        trans1 ~/a_directory_containing_wavecar_file/WAVECAR 1.00
+        trans1 ~/a_directory_containing_wavecar_file/WAVECAR 1.00 0.00
+        
+        trans1 [INPUTFILE] [SCISSORS DELTA] [SCISSORS_OFFSET]
+        
+    * [SCISSORS DELTA]
+        * シザーズ補正の大きさ
+    * [SCISSORS OFFSET]
+        * 補正の挿入位置（フェルミ準位を基準にする）
 
 
 * 結果は標準出力に書きだされる
