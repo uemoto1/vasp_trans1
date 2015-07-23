@@ -209,8 +209,8 @@ double read_wave(FILE *fh, int n_record, int n_coeff, int i,
 
 // Transition probablity by linear polarized light
 double _Complex matrix(int n_plain, vec3d *gtbl, float _Complex *wf1, float _Complex *wf2, vec3d* qv, vec3c* ev) {
-vec3c qe;
-outer3dc(qv, ev, &qe);
+    vec3c qe;
+    outer3dc(qv, ev, &qe);
 
     // Summension over all diagonal element:
     double _Complex result = 0.0;
@@ -242,16 +242,22 @@ outer3dc(qv, ev, &qe);
 int main(int argc, char **argv) {
     // Commandline variables...
     if (argc == 1) {
-        printf("TRANCE1.C: Calculate transition probability from WAVECAR file\n\n");
-        printf("Usage: %s [WAVECAR FILE]\n", argv[0]);
-        printf("Usage: %s [WAVECAR FILE] [SCISSORS FACTOR]\n", argv[0]);
+        printf("Calculate transition probability from WAVECAR file\n\n");
+        printf("Usage:\n");
+        printf(" %s [WAVECAR FILE]\n", argv[0]);
+        printf(" %s [WAVECAR FILE] [SCISSORS DELTA]\n", argv[0]);
+        printf(" %s [WAVECAR FILE] [SCISSORS DELTA] [SCISSORS OFFSET]\n", argv[0]);
         exit(-1);
     }
     FILE *fh = fopen(argv[1], "r");
     // Scissors factor
-    double scissors = 0.0;
-    if (argc == 3) {
-        scissors = atof(argv[2]);
+    double scissors_delta = 0.0;
+    double scissors_offset = 0.0;
+    if (argc >= 3) {
+        scissors_delta = atof(argv[2]);
+    }
+    if (argc >= 4) {
+        scissors_offset = atof(argv[3]);
     }
 
     // Read Wavecar "HEADER" section
@@ -308,10 +314,18 @@ int main(int argc, char **argv) {
     float _Complex *wfj = malloc(sizeof(float _Complex) * n_coeff);
     // Polarization vector
     vec3c ex, ey, er, el;
-    ex.x = 1.0; ex.y = 0.0; ex.z = 0.0;
-    ey.x = 0.0; ey.y = 1.0; ey.z = 0.0;
-    er.x = 1.0 / sqrt(2.0); er.y = I / sqrt(2.0); er.z = 0.0;
-    el.x = 1.0 / sqrt(2.0); el.y = -I / sqrt(2.0); el.z = 0.0;
+    ex.x = 1.0;
+    ex.y = 0.0;
+    ex.z = 0.0;
+    ey.x = 0.0;
+    ey.y = 1.0;
+    ey.z = 0.0;
+    er.x = 1.0 / sqrt(2.0);
+    er.y = I / sqrt(2.0);
+    er.z = 0.0;
+    el.x = 1.0 / sqrt(2.0);
+    el.y = -I / sqrt(2.0);
+    el.z = 0.0;
     printf("# i=initial state index\n");
     printf("# j=excited state index\n");
     printf("# e=energy difference between two states\n");
@@ -326,7 +340,10 @@ int main(int argc, char **argv) {
             for (int j = i + 1; j < n_band; j++) {
                 if (info.e_fermi < state[j].energy) {
                     double ediff = state[j].energy - state[i].energy;
-                    double sdiff = ediff + scissors;
+                    double sdiff = ediff;
+                    if (state[j].energy > info.e_fermi + scissors_offset) {
+                        sdiff += scissors_delta;
+                    }
                     double ndiff = state[i].occup - state[j].occup;
                     // Upper limit of e-MAX energy
                     if (ediff < EMAX) {
