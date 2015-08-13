@@ -304,7 +304,9 @@ int main(int argc, char **argv) {
     // Write out all band energies
     printf("# eigen energies on k=0\n");
     for (int i = 0; i < n_band; i++) {
-        printf("EIGEN i=%d e=%f n=%f\n", i, state[i].energy, state[i].occup);
+        double ei = state[i].energy - info.fermi;
+        double ni = state[i].occup;
+        printf("EIGEN i=%d e=%f n=%f\n", i, ei, ni);
     }
 
     // Write out all considerable transittion
